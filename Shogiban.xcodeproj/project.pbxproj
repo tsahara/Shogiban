@@ -14,6 +14,7 @@
 		1F4796492ADAA37E004FBF54 /* ShogibanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4796482ADAA37E004FBF54 /* ShogibanTests.swift */; };
 		1F4796532ADAA37E004FBF54 /* ShogibanUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4796522ADAA37E004FBF54 /* ShogibanUITests.swift */; };
 		1F4796552ADAA37E004FBF54 /* ShogibanUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4796542ADAA37E004FBF54 /* ShogibanUITestsLaunchTests.swift */; };
+		1F4796622ADAA56B004FBF54 /* Shogiban.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4796612ADAA56B004FBF54 /* Shogiban.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,7 @@
 		1F47964E2ADAA37E004FBF54 /* ShogibanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShogibanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1F4796522ADAA37E004FBF54 /* ShogibanUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShogibanUITests.swift; sourceTree = "<group>"; };
 		1F4796542ADAA37E004FBF54 /* ShogibanUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShogibanUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		1F4796612ADAA56B004FBF54 /* Shogiban.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shogiban.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 			children = (
 				1F4796362ADAA37C004FBF54 /* ShogibanApp.swift */,
 				1F4796382ADAA37C004FBF54 /* ContentView.swift */,
+				1F4796612ADAA56B004FBF54 /* Shogiban.swift */,
 				1F47963A2ADAA37E004FBF54 /* Assets.xcassets */,
 				1F47963C2ADAA37E004FBF54 /* Shogiban.entitlements */,
 				1F47963D2ADAA37E004FBF54 /* Preview Content */,
@@ -261,6 +264,7 @@
 			files = (
 				1F4796392ADAA37C004FBF54 /* ContentView.swift in Sources */,
 				1F4796372ADAA37C004FBF54 /* ShogibanApp.swift in Sources */,
+				1F4796622ADAA56B004FBF54 /* Shogiban.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
