@@ -17,44 +17,43 @@ struct Shogiban: View {
                     context, size in
 
                     let frame_color = GraphicsContext.Shading.color(.black)
-                    let param = ShogibanParameters(size: size)
 
                     // Outer Frame
-                    context.stroke(Path(param.waku), with: frame_color, lineWidth: 2)
+                    context.stroke(Path(geo.fuchi), with: frame_color, lineWidth: 2)
 
                     // Inner Lines
                     var p = Path()
-                    for i in 1..<9 {  // horizontal lines
-                        let x = param.waku.minX
-                        let y = param.waku.minY + param.masu_height * CGFloat(i)
+                    for i in 1...8 {  // horizontal lines
+                        let x = geo.fuchi.minX
+                        let y = geo.fuchi.minY + geo.masuHeight * CGFloat(i)
                         p.move(to: CGPoint(x: x, y: y))
-                        p.addLine(to: CGPoint(x: x + param.waku.width, y: y))
+                        p.addLine(to: CGPoint(x: x + geo.fuchi.width, y: y))
                     }
-                    for i in 1..<9 {  // vertical lines
-                        let x = param.waku.minX + param.masu_height * CGFloat(i)
-                        let y = param.waku.minY
+                    for i in 1...8 {  // vertical lines
+                        let x = geo.fuchi.minX + geo.masuHeight * CGFloat(i)
+                        let y = geo.fuchi.minY
                         p.move(to: CGPoint(x: x, y: y))
-                        p.addLine(to: CGPoint(x: x, y: y + param.waku.height))
+                        p.addLine(to: CGPoint(x: x, y: y + geo.fuchi.height))
                     }
                     context.stroke(p, with: frame_color)
 
                     // 4 Stars
-                    context.fill(starPath(param: param, x: 3, y: 3), with: frame_color)
-                    context.fill(starPath(param: param, x: 3, y: 6), with: frame_color)
-                    context.fill(starPath(param: param, x: 6, y: 3), with: frame_color)
-                    context.fill(starPath(param: param, x: 6, y: 6), with: frame_color)
+                    context.fill(starPath(geo: geo, x: 3, y: 3), with: frame_color)
+                    context.fill(starPath(geo: geo, x: 3, y: 6), with: frame_color)
+                    context.fill(starPath(geo: geo, x: 6, y: 3), with: frame_color)
+                    context.fill(starPath(geo: geo, x: 6, y: 6), with: frame_color)
 
                     // numbers
                     let x_index_strs = ["１", "２", "３", "４", "５", "６", "７", "８", "９"]
                     let y_index_strs = ["一", "二", "三", "四", "五", "六" ,"七", "八", "九"]
                     for x in 1...9 {
-                        let m: CGRect = param.masuRect(x, 1)
-                        context.draw(Text(x_index_strs[x-1]), at: CGPoint(x: m.midX, y: m.minY - param.numberPaddingX), anchor: .bottom)
+                        let m: CGRect = geo.masuRect(x, 1)
+                        context.draw(Text(x_index_strs[x-1]), at: CGPoint(x: m.midX, y: m.minY - geo.numberPaddingX), anchor: .bottom)
                     }
                     for y in 1...9 {
-                        let m: CGRect = param.masuRect(1, y)
+                        let m: CGRect = geo.masuRect(1, y)
                         context.draw(Text(y_index_strs[y-1]),
-                                     at: CGPoint(x: m.maxX + param.numberPaddingY, y: m.midY),
+                                     at: CGPoint(x: m.maxX + geo.numberPaddingY, y: m.midY),
                                      anchor: .leading)
                     }
                 }
@@ -65,16 +64,16 @@ struct Shogiban: View {
                     Text(masu.koma.char())
                         .font(.system(size: geo.komaSize))
                         .rotationEffect(.degrees(masu.is_sente() ? 0 : 180))
-                        .position(geo.masuRect(masu.x, masu.y).origin)
+                        .position(geo.masuRect(masu.x, masu.y).center)
                 }
             }
         }
     }
 
-    func starPath(param: ShogibanParameters, x: Int, y: Int) -> Path {
-        let d = param.masu_width / 5
+    func starPath(geo: ShogibanGeometry, x: Int, y: Int) -> Path {
+        let d = geo.masuWidth / 5
         let star_rect = CGRect(
-            origin: param.masuRect(x, y + 1).origin .applying(.init(translationX: -d / 2, y: -d / 2)),
+            origin: geo.masuRect(x, y + 1).origin .applying(.init(translationX: -d / 2, y: -d / 2)),
             size: CGSize(width: d, height: d))
         return Circle().path(in: star_rect)
     }
@@ -112,7 +111,7 @@ struct ShogibanGeometry {
 
         self.unit = parent.size.height / 10.0
 
-        self.fuchi = CGRect(x: unit, y: unit,
+        self.fuchi = CGRect(x: unit * 0.5, y: unit * 0.5,
                             width: unit * 9, height: unit * 9)
 
         self.komaSize = unit * 0.85
@@ -127,33 +126,16 @@ struct ShogibanGeometry {
                       height: unit)
     }
 
-}
+    var masuHeight: CGFloat { return unit }
+    var masuWidth: CGFloat { return unit }
 
-struct ShogibanParameters {
-    let size: CGSize
     let numberPaddingX = 2.0
     let numberPaddingY = 5.0
+}
 
-    var masu_width: CGFloat { waku.width / 9 }
-    var masu_height: CGFloat { waku.height / 9 }
-
-    var waku: CGRect {
-        let n = min(size.width, size.height)
-        let margin = n * 0.05
-        let l = min(size.width, size.height)
-        return CGRect(x: margin,
-                      y: margin,
-                      width: l * 0.9,
-                      height: l * 0.9)
-    }
-
-    func masuRect(_ x: Int, _ y: Int) -> CGRect {
-        precondition(x >= 1 && x <= 9)
-        precondition(y >= 1 && y <= 9)
-        return CGRect(x: waku.maxX - masu_width * CGFloat(x),
-                      y: waku.minY + masu_height * CGFloat(y - 1),
-                      width: masu_width,
-                      height: masu_height)
+extension CGRect {
+    var center: CGPoint {
+        CGPoint(x: self.midX, y: self.midY)
     }
 }
 
