@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ShogibanView: View {
-    var kyokumen: Kyokumen
+    @Bindable var kyokumen: Kyokumen
     @Environment(\.shogiban) var shogiban
 
     var body: some View {
@@ -175,7 +175,8 @@ struct MasuState: Identifiable {
     }
 }
 
-struct Kyokumen {
+@Observable
+class Kyokumen {
     var masume: [Koma]
 
     init() {
@@ -227,10 +228,18 @@ struct Kyokumen {
         return masume[(x - 1) + (y - 1) * 9]
     }
 
-    mutating func set(_ x: Int, _ y: Int, _ koma: Koma) {
+    func set(_ x: Int, _ y: Int, _ koma: Koma) {
         precondition(x >= 1 && x <= 9)
         precondition(y >= 1 && y <= 9)
         masume[(x - 1) + (y - 1) * 9] = koma
+    }
+
+    func clear() {
+        for x in 1...9 {
+            for y in 1...9 {
+                set(x, y, .empty)
+            }
+        }
     }
 }
 

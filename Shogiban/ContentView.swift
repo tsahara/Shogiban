@@ -11,15 +11,14 @@ struct ContentView: View {
     @State private var exporterPresented = false
     @State private var exportingImage: Image?
     @State private var exportingData: ShogibanImage?
+    @State private var kyokumen = Kyokumen()
 
     @Environment(\.displayScale) var displayScale
     @Environment(\.shogiban) var shogiban
 
-    let shogibanView = ShogibanView(kyokumen: Kyokumen())
-
     var body: some View {
         HStack {
-            shogibanView
+            ShogibanView(kyokumen: kyokumen)
                 .fileExporter(isPresented: $exporterPresented,
                               item: exportingData,
                               contentTypes: [.png],
@@ -34,13 +33,18 @@ struct ContentView: View {
                     exportingImage = createViewImage()
                     exporterPresented = true
                 }
+
+                Spacer()
+                Button("盤面を空にする") {
+                    kyokumen.clear()
+                }
             }
         }
         .padding()
     }
 
     @MainActor func createViewImage() -> Image? {
-        let renderer = ImageRenderer(content: shogibanView)
+        let renderer = ImageRenderer(content: ShogibanView(kyokumen: kyokumen))
         renderer.scale = displayScale
         renderer.proposedSize = ProposedViewSize(shogiban.banSize)
 
