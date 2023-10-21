@@ -30,13 +30,13 @@ struct ShogibanView: View {
                         let x = geo.fuchi.minX
                         let y = geo.fuchi.minY + geo.masuHeight * CGFloat(i)
                         p.move(to: CGPoint(x: x, y: y))
-                        p.addLine(to: CGPoint(x: x + geo.fuchi.width, y: y))
+                        p.addLine(to: CGPoint(x: geo.fuchi.maxX, y: y))
                     }
                     for i in 1...8 {  // vertical lines
                         let x = geo.fuchi.minX + geo.masuHeight * CGFloat(i)
                         let y = geo.fuchi.minY
                         p.move(to: CGPoint(x: x, y: y))
-                        p.addLine(to: CGPoint(x: x, y: y + geo.fuchi.height))
+                        p.addLine(to: CGPoint(x: x, y: geo.fuchi.maxY))
                     }
                     context.stroke(p, with: frame_color)
 
@@ -49,25 +49,32 @@ struct ShogibanView: View {
                     // numbers
                     let x_index_strs = ["１", "２", "３", "４", "５", "６", "７", "８", "９"]
                     let y_index_strs = ["一", "二", "三", "四", "五", "六" ,"七", "八", "九"]
+
+                    let numberFont = Font.system(size: geo.komaSize * 0.4)
                     for x in 1...9 {
                         let m: CGRect = geo.masuRect(x, 1)
-                        context.draw(Text(x_index_strs[x-1]), at: CGPoint(x: m.midX, y: m.minY - geo.numberPaddingX), anchor: .bottom)
+                        context.draw(
+                            Text(x_index_strs[x-1]).font(numberFont),
+                            at: CGPoint(x: m.midX,
+                                        y: m.minY - geo.numberPaddingX),
+                            anchor: .bottom)
                     }
                     for y in 1...9 {
                         let m: CGRect = geo.masuRect(1, y)
-                        context.draw(Text(y_index_strs[y-1]),
-                                     at: CGPoint(x: m.maxX + geo.numberPaddingY, y: m.midY),
-                                     anchor: .leading)
+                        context.draw(
+                            Text(y_index_strs[y-1]).font(numberFont),
+                            at: CGPoint(x: m.maxX + geo.numberPaddingY,
+                                        y: m.midY),
+                            anchor: .leading)
                     }
                 }
-                .background(GeometryReader { g2 -> Color in
+                .background(GeometryReader { g -> Color in
                     DispatchQueue.main.async {
-                        shogiban.banSize = g2.size
+                        shogiban.banSize = g.size
                     }
                     return Color.white
                 })
 
-                let kyokumen = Kyokumen()
                 ForEach(kyokumen.koma_all()) { masu in
                     Text(masu.koma.char())
                         .font(.system(size: geo.komaSize))
@@ -97,9 +104,9 @@ struct ShogibanGeometry {
     init(parent: GeometryProxy) {
         self.parent = parent
 
-        self.unit = parent.size.height / 10.0
+        self.unit = parent.size.height / 10.4
 
-        self.fuchi = CGRect(x: unit * 0.5, y: unit * 0.5,
+        self.fuchi = CGRect(x: unit * 0.7, y: unit * 0.7,
                             width: unit * 9, height: unit * 9)
 
         self.komaSize = unit * 0.85
