@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct ShogibanApp: App {
+    @State private var shogiban = Shogiban()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(\.shogiban, shogiban)
         }
     }
 }
