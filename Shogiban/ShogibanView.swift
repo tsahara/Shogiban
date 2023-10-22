@@ -78,7 +78,7 @@ struct ShogibanView: View {
                 ForEach(kyokumen.koma_all()) { masu in
                     Text(masu.koma.char())
                         .font(.system(size: geo.komaSize))
-                        .rotationEffect(.degrees(masu.is_sente() ? 0 : 180))
+                        .rotationEffect(.degrees(masu.isSente() ? 0 : 180))
                         .position(geo.masuRect(masu.x, masu.y).center)
                 }
             }
@@ -153,6 +153,12 @@ enum Koma: Int {
         case .error: return "？"
         }
     }
+
+    func isSente() -> Bool {
+        return (self == .fuS || self == .kyoushaS || self == .keimaS ||
+                self == .ginS || self == .kinS || self == .kakuS ||
+                self == .hishaS || self == .gyokuS)
+    }
 }
 
 struct MasuState: Identifiable {
@@ -164,23 +170,22 @@ struct MasuState: Identifiable {
         x + (y * 9) + (koma.rawValue * 81)
     }
 
-    func is_sente() -> Bool {
-        return (koma == .fuS || koma == .kyoushaS || koma == .keimaS ||
-                koma == .ginS || koma == .kinS || koma == .kakuS ||
-                koma == .hishaS || koma == .gyokuS)
-    }
-
-    func is_gote() -> Bool {
-        return !is_sente()
+    func isSente() -> Bool {
+        koma.isSente()
     }
 }
 
 @Observable
 class Kyokumen {
     var masume: [Koma]
+    var mochigomaSente: [Koma: Int]
+    var mochigomaGote: [Koma: Int]
 
     init() {
         masume = Array(repeating: .empty, count: 81)
+        mochigomaSente = [:]
+        mochigomaGote = [:]
+
         set(5, 1, .gyokuG)
         set(5, 9, .gyokuS)
         set(4, 1, .kinG)
@@ -234,12 +239,160 @@ class Kyokumen {
         masume[(x - 1) + (y - 1) * 9] = koma
     }
 
+    func capture(_ koma: Koma) {
+        if koma.isSente() {
+            let n = self.mochigomaSente[koma] ?? 0
+            self.mochigomaSente[koma] = n + 1
+        } else {
+            let n = self.mochigomaGote[koma] ?? 0
+            self.mochigomaGote[koma] = n + 1
+        }
+    }
+
+    func drop(_ koma: Koma) {
+        if koma.isSente() {
+            if (self.mochigomaSente[koma] ?? 0) <= 1 {
+                mochigomaSente.removeValue(forKey: koma)
+            } else {
+                self.mochigomaSente[koma]! -= 1
+            }
+        } else {
+            if (self.mochigomaGote[koma] ?? 0) <= 1 {
+                mochigomaGote.removeValue(forKey: koma)
+            } else {
+                self.mochigomaGote[koma]! -= 1
+            }
+        }
+    }
+
+    func has(_ koma: Koma) -> Int {
+        if koma.isSente() {
+            return mochigomaSente[koma] ?? 0
+        } else {
+            return mochigomaGote[koma] ?? 0
+        }
+    }
+
     func clear() {
         for x in 1...9 {
             for y in 1...9 {
                 set(x, y, .empty)
             }
         }
+    }
+
+    func read(sfen: String) -> Bool {
+        self.clear()
+
+        enum Phase {
+            case ban, sengo, mochigoma
+        }
+        var phase = Phase.ban
+        var koma = Koma.error
+        var nari = false  // next koma is promoted
+        var x = 9
+        var y = 1
+        var count = 0
+
+        for ch in sfen {
+            if phase == .ban {
+                switch ch {
+                case "P": koma = .fuS
+                case "L": koma = .kyoushaS
+                case "N": koma = .keimaS
+                case "S": koma = .ginS
+                case "G": koma = .kinS
+                case "B": koma = .kakuS
+                case "R": koma = .hishaS
+                case "K": koma = .gyokuS
+                case "p": koma = .fuG
+                case "l": koma = .kyoushaG
+                case "n": koma = .keimaG
+                case "s": koma = .ginG
+                case "g": koma = .kinG
+                case "b": koma = .kakuG
+                case "r": koma = .hishaG
+                case "k": koma = .gyokuG
+                case "1"..."9":
+                    x -= ch.wholeNumberValue!
+                case "/":
+                    y += 1
+                    x = 9
+                    continue
+                case "+": nari = true
+                case " ":
+                    if y == 9 {
+                        phase = .sengo
+                        continue
+                    }
+                    // ignore other space chars
+                default:
+                    return false  // invalid char
+                }
+
+                if koma != .error {
+                    if x <= 0 || y >= 10 {
+                        return false
+                    }
+                    self.set(x, y, koma)
+                    koma = .error
+                    x -= 1
+                }
+            } else if phase == .sengo {
+                switch ch {
+                case "b":
+                    phase = .mochigoma
+                    koma = .error
+                case "w":
+                    phase = .mochigoma
+                    koma = .error
+                case " ": continue
+                default:
+                    return false
+                }
+            } else if phase == .mochigoma {
+                switch ch {
+                case "P": koma = .fuS
+                case "L": koma = .kyoushaS
+                case "N": koma = .keimaS
+                case "S": koma = .ginS
+                case "G": koma = .kinS
+                case "B": koma = .kakuS
+                case "R": koma = .hishaS
+                case "K": koma = .gyokuS
+                case "p": koma = .fuG
+                case "l": koma = .kyoushaG
+                case "n": koma = .keimaG
+                case "s": koma = .ginG
+                case "g": koma = .kinG
+                case "b": koma = .kakuG
+                case "r": koma = .hishaG
+                case "k": koma = .gyokuG
+                case "1"..."9":
+                    count = count * 10 + ch.wholeNumberValue!
+                    continue
+                case "-":
+                    // both players have nothing
+                    break
+                case " ":
+                    continue
+                default:
+                    return false
+                }
+                if koma != .error {
+                    if count == 0 {
+                        self.capture(koma)
+                    } else {
+                        for _ in 1...count {
+                            self.capture(koma)
+                        }
+                    }
+                    koma = .error
+                    count = 0
+                }
+            }
+        }
+        return true
     }
 }
 

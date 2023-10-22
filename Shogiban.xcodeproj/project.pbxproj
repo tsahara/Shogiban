@@ -16,6 +16,7 @@
 		1F4796552ADAA37E004FBF54 /* ShogibanUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4796542ADAA37E004FBF54 /* ShogibanUITestsLaunchTests.swift */; };
 		1F4796622ADAA56B004FBF54 /* ShogibanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4796612ADAA56B004FBF54 /* ShogibanView.swift */; };
 		1FE599B12AE36B5100FDD617 /* Shogiban.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FE599B02AE36B5100FDD617 /* Shogiban.swift */; };
+		1FE599B32AE4998600FDD617 /* Shogiban.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FE599B02AE36B5100FDD617 /* Shogiban.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -277,6 +278,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1F4796492ADAA37E004FBF54 /* ShogibanTests.swift in Sources */,
+				1FE599B32AE4998600FDD617 /* Shogiban.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -554,6 +556,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.caddr.ShogibanUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -576,6 +579,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.caddr.ShogibanUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_EMIT_LOC_STRINGS = NO;

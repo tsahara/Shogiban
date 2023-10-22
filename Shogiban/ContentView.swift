@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var exportingImage: Image?
     @State private var exportingData: ShogibanImage?
     @State private var kyokumen = Kyokumen()
+    @State private var sfen: String = ""
 
     @Environment(\.displayScale) var displayScale
     @Environment(\.shogiban) var shogiban
@@ -33,6 +34,11 @@ struct ContentView: View {
                     exportingImage = createViewImage()
                     exporterPresented = true
                 }
+                TextField("SFEN", text: $sfen)
+                    .onSubmit {
+                        kyokumen.read(sfen: sfen)
+                    }
+                    .disableAutocorrection(false)
 
                 Spacer()
                 Button("盤面を空にする") {
