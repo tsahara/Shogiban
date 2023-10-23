@@ -38,47 +38,43 @@ final class ShogibanTests: XCTestCase {
 final class KyokumenTests: XCTestCase {
     let k = Kyokumen()
 
+    func assertSquare(_ column: Int, _ row: Int, _ piece: Piece?, _ player: Player?, file: StaticString = #file, line: UInt = #line) {
+        let (pieceActual, playerActual) = k.get(column, row)
+        XCTAssertEqual(piece, pieceActual, file: file, line: line)
+        XCTAssertEqual(player, playerActual, file: file, line: line)
+    }
+
+    func testInit() throws {
+        assertSquare(5, 1, .king, .white)
+    }
+
     func testClear() throws {
-        XCTAssertEqual(k.get(1, 1), .kyoushaG)
+        assertSquare(1, 1, .lance, .white)
         k.clear()
-        XCTAssertEqual(k.get(1, 1), .empty)
+        assertSquare(1, 1, nil, nil)
     }
 
     func testRead() throws {
         let shokei = "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL"
         XCTAssertTrue(k.read(sfen: shokei))
-        XCTAssertEqual(k.get(1, 1), .kyoushaG)
-        XCTAssertEqual(k.get(5, 3), .fuG)
-        XCTAssertEqual(k.get(5, 7), .fuS)
-        XCTAssertEqual(k.get(9, 9), .kyoushaS)
+        assertSquare(1, 1, .lance, .white)
+        assertSquare(5, 3, .paun,  .white)
+        assertSquare(5, 7, .paun,  .black)
+        assertSquare(9, 9, .lance, .black)
 
-        // 第13期竜王戦七番勝負第７局
         let k2 = "l6nl/5+P3/2np3k1/p1p2S2p/3P2Sp1/1pPb2P1P/PP2+r1NS1/R5GK1/LN6L b Gb2gs5p 1"
-        let kyokumenArray: [[Koma]] = [
-            [ .kyoushaG, .empty, .empty, .empty, .empty, .empty, .empty, .keimaG, .kyoushaG],
-            [ .empty, .empty, .empty, .empty, .empty, .fuS, .empty, .empty, .empty ],
-            [ .empty, .empty, .keimaG, .fuG, .empty, .empty, .empty, .gyokuG, .empty ],
-            [ .fuG, .empty, .fuG, .empty, .empty, .ginS, .empty, .empty, .fuG ],
-            [ .empty, .empty, .empty, .fuS, .empty, .empty, .ginS, .fuG, .empty ],
-            [ .empty, .fuG, .fuS, .kakuG, .empty, .empty, .fuS, .empty, .fuS ],
-            [ .fuS, .fuS, .empty, .empty, .hishaG, .empty, .keimaS, .ginS, .empty ],
-            [ .hishaS, .empty, .empty, .empty, .empty, .empty, .kinS, .gyokuS, .empty ],
-            [ .kyoushaS, .keimaS, .empty, .empty, .empty, .empty, .empty, .empty, .kyoushaS ],
-        ]
         XCTAssertTrue(k.read(sfen: k2))
-        for y in 0..<9 {
-            for x in 0..<9 {
-                let komaExpected = kyokumenArray[y][x]
-                let komaActual = k.get(9 - x, 1 + y)
-                XCTAssert(komaExpected == komaActual,
-                          "\(komaActual) at (\(9-x),\(1+y)) should be \(komaExpected)")
-            }
-        }
-        XCTAssertEqual(k.has(.kinS), 1)
-        XCTAssertEqual(k.has(.fuS), 0)
-        XCTAssertEqual(k.has(.kakuG), 1)
-        XCTAssertEqual(k.has(.kinG), 2)
-        XCTAssertEqual(k.has(.ginG), 1)
-        XCTAssertEqual(k.has(.fuG), 5)
+        assertSquare(2, 8, .king, .black)
+        assertSquare(4, 2, .paunP, .black)
+        assertSquare(6, 6, .bishop, .white)
+        assertSquare(5, 7, .rookP, .white)
+        assertSquare(7, 9, nil, nil)
+
+        XCTAssertEqual(k.has(.gold, .black), 1)
+        XCTAssertEqual(k.has(.paun, .black), 0)
+        XCTAssertEqual(k.has(.bishop, .white), 1)
+        XCTAssertEqual(k.has(.gold, .white), 2)
+        XCTAssertEqual(k.has(.silver, .white), 1)
+        XCTAssertEqual(k.has(.paun, .white), 5)
     }
 }

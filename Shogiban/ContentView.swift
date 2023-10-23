@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  Shogiban
 //
-//  Created by 佐原具幸 on 2023/10/14.
+//  Created by Tomoyuki Sahara on 2023/10/14.
 //
 
 import SwiftUI

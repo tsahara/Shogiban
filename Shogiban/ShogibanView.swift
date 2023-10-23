@@ -50,7 +50,7 @@ struct ShogibanView: View {
                     let x_index_strs = ["１", "２", "３", "４", "５", "６", "７", "８", "９"]
                     let y_index_strs = ["一", "二", "三", "四", "五", "六" ,"七", "八", "九"]
 
-                    let numberFont = Font.system(size: geo.komaSize * 0.4)
+                    let numberFont = Font.system(size: geo.squareSize * 0.4)
                     for x in 1...9 {
                         let m: CGRect = geo.masuRect(x, 1)
                         context.draw(
@@ -68,20 +68,25 @@ struct ShogibanView: View {
                             anchor: .leading)
                     }
                 }
-                .background(GeometryReader { g -> Color in
-                    DispatchQueue.main.async {
-                        shogiban.banSize = g.size
-                    }
-                    return Color.white
-                })
+                .background(geometryInspector)
 
-                ForEach(kyokumen.koma_all()) { masu in
-                    Text(masu.koma.char())
-                        .font(.system(size: geo.komaSize))
-                        .rotationEffect(.degrees(masu.isSente() ? 0 : 180))
-                        .position(geo.masuRect(masu.x, masu.y).center)
+                ForEach(kyokumen.piecesOnBoard()) { square in
+                    let deg = (square.player == .black ? 0.0 : 180.0)
+                    Text(square.piece!.char())
+                        .font(.system(size: geo.squareSize))
+                        .rotationEffect(.degrees(deg))
+                        .position(geo.masuRect(square.x, square.y).center)
                 }
             }
+        }
+    }
+
+    var geometryInspector: some View {
+        GeometryReader { geometry -> AnyView in
+            DispatchQueue.main.async {
+                shogiban.banSize = geometry.size
+            }
+            return AnyView(Color.white)
         }
     }
 
@@ -99,7 +104,7 @@ struct ShogibanGeometry {
 
     let unit: CGFloat
     let fuchi: CGRect
-    let komaSize: CGFloat
+    let squareSize: CGFloat
 
     init(parent: GeometryProxy) {
         self.parent = parent
@@ -109,7 +114,7 @@ struct ShogibanGeometry {
         self.fuchi = CGRect(x: unit * 0.7, y: unit * 0.7,
                             width: unit * 9, height: unit * 9)
 
-        self.komaSize = unit * 0.85
+        self.squareSize = unit * 0.85
     }
 
     func masuRect(_ x: Int, _ y: Int) -> CGRect {
@@ -134,150 +139,151 @@ extension CGRect {
     }
 }
 
-enum Koma: Int {
-    case fuS, kyoushaS, keimaS, ginS, kinS, kakuS, hishaS, gyokuS
-    case fuG, kyoushaG, keimaG, ginG, kinG, kakuG, hishaG, gyokuG
-    case empty, error
-
-    func char() -> String {
-        switch self {
-        case .fuS, .fuG: return "歩"
-        case .kyoushaS, .kyoushaG: return "香"
-        case .keimaS, .keimaG: return "桂"
-        case .ginS, .ginG: return "銀"
-        case .kinS, .kinG: return "金"
-        case .kakuS, .kakuG: return "角"
-        case .hishaS, .hishaG: return "飛"
-        case .gyokuS, .gyokuG: return "玉"
-        case .empty: return ""
-        case .error: return "？"
-        }
-    }
-
-    func isSente() -> Bool {
-        return (self == .fuS || self == .kyoushaS || self == .keimaS ||
-                self == .ginS || self == .kinS || self == .kakuS ||
-                self == .hishaS || self == .gyokuS)
-    }
-}
-
-struct MasuState: Identifiable {
+struct Square: Identifiable {
     let x: Int
     let y: Int
-    let koma: Koma
+    let piece: Piece?
+    let player: Player?
 
     var id: Int {
-        x + (y * 9) + (koma.rawValue * 81)
-    }
-
-    func isSente() -> Bool {
-        koma.isSente()
+        // Note: x < 16, y < 16, piece < 16, and player < 4
+        if piece == nil {
+            0 + x << 1 + y << 5
+        } else {
+            1 + x << 1 + y << 5 + piece!.rawValue << 9 + player!.rawValue << 13
+        }
     }
 }
 
 @Observable
 class Kyokumen {
-    var masume: [Koma]
-    var mochigomaSente: [Koma: Int]
-    var mochigomaGote: [Koma: Int]
+    var masume: [(piece: Piece?, player: Player?)]
+    var mochigomaSente: [Piece: Int]
+    var mochigomaGote: [Piece: Int]
 
     init() {
-        masume = Array(repeating: .empty, count: 81)
+        masume = Array(repeating: (piece: nil, player: nil),
+                       count: 81)
         mochigomaSente = [:]
         mochigomaGote = [:]
 
-        set(5, 1, .gyokuG)
-        set(5, 9, .gyokuS)
-        set(4, 1, .kinG)
-        set(6, 9, .kinS)
-        set(6, 1, .kinG)
-        set(4, 9, .kinS)
-        set(3, 1, .ginG)
-        set(7, 9, .ginS)
-        set(7, 1, .ginG)
-        set(3, 9, .ginS)
-        set(2, 1, .keimaG)
-        set(8, 9, .keimaS)
-        set(8, 1, .keimaG)
-        set(2, 9, .keimaS)
-        set(1, 1, .kyoushaG)
-        set(9, 9, .kyoushaS)
-        set(9, 1, .kyoushaG)
-        set(1, 9, .kyoushaS)
-        set(2, 2, .kakuG)
-        set(8, 8, .kakuS)
-        set(8, 2, .hishaG)
-        set(2, 8, .hishaS)
+        set(5, 1, .king, .white)
+        set(5, 9, .king, .black)
+        set(4, 1, .gold, .white)
+        set(6, 9, .gold, .black)
+        set(6, 1, .gold, .white)
+        set(4, 9, .gold, .black)
+        set(3, 1, .silver, .white)
+        set(7, 9, .silver, .black)
+        set(7, 1, .silver, .white)
+        set(3, 9, .silver, .black)
+        set(2, 1, .knight, .white)
+        set(8, 9, .knight, .black)
+        set(8, 1, .knight, .white)
+        set(2, 9, .knight, .black)
+        set(1, 1, .lance, .white)
+        set(9, 9, .lance, .black)
+        set(9, 1, .lance, .white)
+        set(1, 9, .lance, .black)
+        set(2, 2, .bishop, .white)
+        set(8, 8, .bishop, .black)
+        set(8, 2, .rook, .white)
+        set(2, 8, .rook, .black)
         for x in 1...9 {
-            set(x, 3, .fuG)
-            set(x, 7, .fuS)
+            set(x, 3, .paun, .white)
+            set(x, 7, .paun, .black)
         }
     }
 
-    func koma_all() -> [MasuState] {
-        var result = [MasuState]()
-        for y in 1...9 {
-            for x in 1...9 {
-                let k = get(x, y)
-                if k != .empty && k != .error {
-                    result.append(MasuState(x: x, y: y, koma: k))
+    func piecesOnBoard() -> [Square] {
+        var result = [Square]()
+        for row in 1...9 {
+            for column in 1...9 {
+                let (piece, player) = get(column, row)
+                if piece != nil {
+                    result.append(Square(x: column,
+                                         y: row,
+                                         piece: piece,
+                                         player: player))
                 }
             }
         }
         return result
     }
 
-    func get(_ x: Int, _ y: Int) -> Koma {
+    func get(_ x: Int, _ y: Int) -> (Piece?, Player?) {
         precondition(x >= 1 && x <= 9)
         precondition(y >= 1 && y <= 9)
         return masume[(x - 1) + (y - 1) * 9]
     }
 
-    func set(_ x: Int, _ y: Int, _ koma: Koma) {
+    func set(_ x: Int, _ y: Int, _ piece: Piece?, _ player: Player?) {
         precondition(x >= 1 && x <= 9)
         precondition(y >= 1 && y <= 9)
-        masume[(x - 1) + (y - 1) * 9] = koma
+        masume[(x - 1) + (y - 1) * 9] = (piece, player)
     }
 
-    func capture(_ koma: Koma) {
-        if koma.isSente() {
-            let n = self.mochigomaSente[koma] ?? 0
-            self.mochigomaSente[koma] = n + 1
+    func capture(_ piece: Piece, _ player: Player) {
+        if player == .black {
+            let n = self.mochigomaSente[piece] ?? 0
+            self.mochigomaSente[piece] = n + 1
         } else {
-            let n = self.mochigomaGote[koma] ?? 0
-            self.mochigomaGote[koma] = n + 1
+            let n = self.mochigomaGote[piece] ?? 0
+            self.mochigomaGote[piece] = n + 1
         }
     }
 
-    func drop(_ koma: Koma) {
-        if koma.isSente() {
-            if (self.mochigomaSente[koma] ?? 0) <= 1 {
-                mochigomaSente.removeValue(forKey: koma)
+    func drop(_ piece: Piece, _ player: Player) {
+        if player == .black {
+            if (self.mochigomaSente[piece] ?? 0) <= 1 {
+                mochigomaSente.removeValue(forKey: piece)
             } else {
-                self.mochigomaSente[koma]! -= 1
+                self.mochigomaSente[piece]! -= 1
             }
         } else {
-            if (self.mochigomaGote[koma] ?? 0) <= 1 {
-                mochigomaGote.removeValue(forKey: koma)
+            if (self.mochigomaGote[piece] ?? 0) <= 1 {
+                mochigomaGote.removeValue(forKey: piece)
             } else {
-                self.mochigomaGote[koma]! -= 1
+                self.mochigomaGote[piece]! -= 1
             }
         }
     }
 
-    func has(_ koma: Koma) -> Int {
-        if koma.isSente() {
-            return mochigomaSente[koma] ?? 0
+    func has(_ piece: Piece, _ player: Player) -> Int {
+        if player == .black {
+            return mochigomaSente[piece] ?? 0
         } else {
-            return mochigomaGote[koma] ?? 0
+            return mochigomaGote[piece] ?? 0
         }
     }
 
     func clear() {
         for x in 1...9 {
             for y in 1...9 {
-                set(x, y, .empty)
+                set(x, y, nil, nil)
             }
+        }
+    }
+
+    static func charToPiecePlayer(_ ch: Character) -> (Piece?, Player?) {
+        switch ch {
+        case "P": (.paun,   .black)
+        case "L": (.lance,  .black)
+        case "N": (.knight, .black)
+        case "S": (.silver, .black)
+        case "G": (.gold,   .black)
+        case "B": (.bishop, .black)
+        case "R": (.rook,   .black)
+        case "K": (.king,   .black)
+        case "p": (.paun,   .white)
+        case "l": (.lance,  .white)
+        case "n": (.knight, .white)
+        case "s": (.silver, .white)
+        case "g": (.gold,   .white)
+        case "b": (.bishop, .white)
+        case "r": (.rook,   .white)
+        case "k": (.king,   .white)
+        default:  (nil, nil)
         }
     }
 
@@ -288,8 +294,9 @@ class Kyokumen {
             case ban, sengo, mochigoma
         }
         var phase = Phase.ban
-        var koma = Koma.error
-        var nari = false  // next koma is promoted
+        var piece: Piece? = nil
+        var player: Player? = nil
+        var promoted = false
         var x = 9
         var y = 1
         var count = 0
@@ -297,29 +304,16 @@ class Kyokumen {
         for ch in sfen {
             if phase == .ban {
                 switch ch {
-                case "P": koma = .fuS
-                case "L": koma = .kyoushaS
-                case "N": koma = .keimaS
-                case "S": koma = .ginS
-                case "G": koma = .kinS
-                case "B": koma = .kakuS
-                case "R": koma = .hishaS
-                case "K": koma = .gyokuS
-                case "p": koma = .fuG
-                case "l": koma = .kyoushaG
-                case "n": koma = .keimaG
-                case "s": koma = .ginG
-                case "g": koma = .kinG
-                case "b": koma = .kakuG
-                case "r": koma = .hishaG
-                case "k": koma = .gyokuG
                 case "1"..."9":
                     x -= ch.wholeNumberValue!
+                    piece = nil
                 case "/":
                     y += 1
                     x = 9
+                    piece = nil
                     continue
-                case "+": nari = true
+                case "+":
+                    promoted = true
                 case " ":
                     if y == 9 {
                         phase = .sengo
@@ -327,67 +321,61 @@ class Kyokumen {
                     }
                     // ignore other space chars
                 default:
-                    return false  // invalid char
+                    (piece, player) = Kyokumen.charToPiecePlayer(ch)
+                    if piece == nil {
+                        return false  // invalid char
+                    }
                 }
 
-                if koma != .error {
+                if piece != nil {
                     if x <= 0 || y >= 10 {
                         return false
                     }
-                    self.set(x, y, koma)
-                    koma = .error
+                    if promoted {
+                        piece = piece?.promote()
+                    }
+                    player = ch.isUppercase ? .black : .white
+                    self.set(x, y, piece, player)
+                    piece = nil
+                    promoted = false
                     x -= 1
                 }
             } else if phase == .sengo {
                 switch ch {
                 case "b":
                     phase = .mochigoma
-                    koma = .error
+                    piece = nil
                 case "w":
                     phase = .mochigoma
-                    koma = .error
+                    piece = nil
                 case " ": continue
                 default:
                     return false
                 }
             } else if phase == .mochigoma {
                 switch ch {
-                case "P": koma = .fuS
-                case "L": koma = .kyoushaS
-                case "N": koma = .keimaS
-                case "S": koma = .ginS
-                case "G": koma = .kinS
-                case "B": koma = .kakuS
-                case "R": koma = .hishaS
-                case "K": koma = .gyokuS
-                case "p": koma = .fuG
-                case "l": koma = .kyoushaG
-                case "n": koma = .keimaG
-                case "s": koma = .ginG
-                case "g": koma = .kinG
-                case "b": koma = .kakuG
-                case "r": koma = .hishaG
-                case "k": koma = .gyokuG
                 case "1"..."9":
                     count = count * 10 + ch.wholeNumberValue!
                     continue
                 case "-":
-                    // both players have nothing
+                    // both players have no pieces
                     break
                 case " ":
                     continue
                 default:
-                    return false
-                }
-                if koma != .error {
-                    if count == 0 {
-                        self.capture(koma)
-                    } else {
-                        for _ in 1...count {
-                            self.capture(koma)
-                        }
+                    (piece, player) = Kyokumen.charToPiecePlayer(ch)
+                    if piece == nil {
+                        return false  // invalid char
                     }
-                    koma = .error
+                }
+                if piece != nil {
+                    if count == 0 {
+                        count = 1
+                    }
+                    for _ in 1...count {
+                        self.capture(piece!, player!)
+                    }
+                    piece = nil
                     count = 0
                 }
             }
