@@ -70,6 +70,9 @@ struct ShogibanView: View {
                 }
                 .background(geometryInspector)
 
+                pieceStandView(geo, .black)
+                pieceStandView(geo, .white)
+
                 ForEach(kyokumen.piecesOnBoard()) { square in
                     let deg = (square.player == .black ? 0.0 : 180.0)
                     Text(square.piece!.char())
@@ -91,11 +94,63 @@ struct ShogibanView: View {
     }
 
     func starPath(geo: ShogibanGeometry, x: Int, y: Int) -> Path {
-        let d = geo.masuWidth / 5
+        let d = geo.masuWidth / 8
         let star_rect = CGRect(
             origin: geo.masuRect(x, y + 1).origin .applying(.init(translationX: -d / 2, y: -d / 2)),
             size: CGSize(width: d, height: d))
         return Circle().path(in: star_rect)
+    }
+
+    func makePieceStandString(_ player: Player) -> String {
+        let prefix = player == .black ? "☗先手 " : "☖後手 "
+        var str = prefix
+        [.rook, .bishop, .gold, .silver, .knight, .lance].forEach {
+            (piece: Piece) in
+            let count = kyokumen.has(piece, player)
+            str += String(repeating: piece.char(), count: count)
+        }
+
+        let paunCount = kyokumen.has(.paun, player)
+        if paunCount == 1 {
+            str += "歩"
+        } else if paunCount >= 2 {
+            let fmt = NumberFormatter()
+            fmt.numberStyle = .spellOut
+            fmt.locale = .init(identifier: "ja-JP")
+            str += "歩" + fmt.string(from: NSNumber(value: paunCount))!
+        }
+        if str == prefix { str += "なし" }
+
+        return str
+    }
+
+    func pieceStandView(_ geo: ShogibanGeometry, _ player: Player) -> some View {
+        let charSize = geo.squareSize * 0.7
+
+        let x: CGFloat, deg: Double
+        if player == .black {
+            x = geo.fuchi.maxX + geo.squareSize * 1.2
+            deg = 0.0
+        } else {
+            x = geo.fuchi.minX - geo.squareSize * 0.7
+            deg = 180.0
+        }
+
+        return Canvas { context, _ in
+            let handFont = Font.system(size: charSize)
+            let str = makePieceStandString(player)
+
+            for (index, char) in str.enumerated() {
+                let offset = charSize * CGFloat(str.count - index)
+                context.draw(Text(String(char)).font(handFont),
+                             at: CGPoint(x: 0,
+                                         y: geo.fuchi.maxY - offset),
+                             anchor: .bottomLeading)
+            }
+        }
+        .rotationEffect(.degrees(deg))
+        .frame(width: charSize, height: geo.fuchi.height)
+        .position(x: x, y: geo.fuchi.midY)
     }
 }
 
@@ -111,7 +166,7 @@ struct ShogibanGeometry {
 
         self.unit = parent.size.height / 10.4
 
-        self.fuchi = CGRect(x: unit * 0.7, y: unit * 0.7,
+        self.fuchi = CGRect(x: unit * 1.3, y: unit * 0.7,
                             width: unit * 9, height: unit * 9)
 
         self.squareSize = unit * 0.85
@@ -263,6 +318,8 @@ class Kyokumen {
                 set(x, y, nil, nil)
             }
         }
+        mochigomaSente = [:]
+        mochigomaGote = [:]
     }
 
     static func charToPiecePlayer(_ ch: Character) -> (Piece?, Player?) {

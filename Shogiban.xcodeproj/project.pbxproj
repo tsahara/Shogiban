@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1F0D4EC42AE5406400D5BFCD /* ShogibanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4796612ADAA56B004FBF54 /* ShogibanView.swift */; };
+		1F0D4EC52AE6CFFA00D5BFCD /* ShogibanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4796612ADAA56B004FBF54 /* ShogibanView.swift */; };
 		1F4796372ADAA37C004FBF54 /* ShogibanApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4796362ADAA37C004FBF54 /* ShogibanApp.swift */; };
 		1F4796392ADAA37C004FBF54 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4796382ADAA37C004FBF54 /* ContentView.swift */; };
 		1F47963B2ADAA37E004FBF54 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1F47963A2ADAA37E004FBF54 /* Assets.xcassets */; };
@@ -278,7 +278,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1F0D4EC42AE5406400D5BFCD /* ShogibanView.swift in Sources */,
+				1F0D4EC52AE6CFFA00D5BFCD /* ShogibanView.swift in Sources */,
 				1F4796492ADAA37E004FBF54 /* ShogibanTests.swift in Sources */,
 				1FE599B32AE4998600FDD617 /* Shogiban.swift in Sources */,
 			);
