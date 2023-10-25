@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var exportingData: ShogibanImage?
     @State private var kyokumen = Kyokumen()
     @State private var sfen: String = ""
+    @State private var reversed: Bool = false
 
     @Environment(\.displayScale) var displayScale
     @Environment(\.shogiban) var shogiban
@@ -26,6 +27,7 @@ struct ContentView: View {
                               defaultFilename: "Untitled.png",
                               onCompletion: { result in
                 })
+                .rotationEffect(.degrees(reversed ? 180 : 0))
             VStack {
                 Image(systemName: "globe")
                     .imageScale(.large)
@@ -36,9 +38,12 @@ struct ContentView: View {
                 }
                 TextField("SFEN", text: $sfen)
                     .onSubmit {
-                        kyokumen.read(sfen: sfen)
+                        _ = kyokumen.read(sfen: sfen)
                     }
                     .disableAutocorrection(false)
+                Toggle(isOn: $reversed) {
+                    Text("先後反転")
+                }
 
                 Spacer()
                 Button("盤面を空にする") {
@@ -46,11 +51,13 @@ struct ContentView: View {
                 }
             }
         }
-        .padding()
     }
 
     @MainActor func createViewImage() -> Image? {
-        let renderer = ImageRenderer(content: ShogibanView(kyokumen: kyokumen))
+
+        let view = ShogibanView(kyokumen: kyokumen)
+            .rotationEffect(.degrees(reversed ? 180 : 0))
+        let renderer = ImageRenderer(content: view)
         renderer.scale = displayScale
         renderer.proposedSize = ProposedViewSize(shogiban.banSize)
 
