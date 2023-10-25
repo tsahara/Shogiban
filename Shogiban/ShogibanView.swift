@@ -50,7 +50,7 @@ struct ShogibanView: View {
                     let x_index_strs = ["１", "２", "３", "４", "５", "６", "７", "８", "９"]
                     let y_index_strs = ["一", "二", "三", "四", "五", "六" ,"七", "八", "九"]
 
-                    let numberFont = Font.system(size: geo.squareSize * 0.4)
+                    let numberFont = Font.system(size: geo.unit * 0.34)
                     for x in 1...9 {
                         let m: CGRect = geo.masuRect(x, 1)
                         context.draw(
@@ -76,11 +76,12 @@ struct ShogibanView: View {
                 ForEach(kyokumen.piecesOnBoard()) { square in
                     let deg = (square.player == .black ? 0.0 : 180.0)
                     Text(square.piece!.char())
-                        .font(.system(size: geo.squareSize))
+                        .font(.system(size: geo.unit * 0.85))
                         .rotationEffect(.degrees(deg))
                         .position(geo.masuRect(square.x, square.y).center)
                 }
             }
+            .frame(width: geo.unit * 12.0, height: geo.unit * 10.4)
         }
     }
 
@@ -125,14 +126,14 @@ struct ShogibanView: View {
     }
 
     func pieceStandView(_ geo: ShogibanGeometry, _ player: Player) -> some View {
-        let charSize = geo.squareSize * 0.7
+        let charSize = geo.unit * 0.6
 
         let x: CGFloat, deg: Double
         if player == .black {
-            x = geo.fuchi.maxX + geo.squareSize * 1.2
+            x = geo.fuchi.maxX + geo.unit
             deg = 0.0
         } else {
-            x = geo.fuchi.minX - geo.squareSize * 0.7
+            x = geo.fuchi.minX - geo.unit * 0.6
             deg = 180.0
         }
 
@@ -159,17 +160,15 @@ struct ShogibanGeometry {
 
     let unit: CGFloat
     let fuchi: CGRect
-    let squareSize: CGFloat
 
     init(parent: GeometryProxy) {
         self.parent = parent
 
-        self.unit = parent.size.height / 10.4
+        self.unit = min(parent.size.width / 12.0,
+                        parent.size.height / 10.4)
 
         self.fuchi = CGRect(x: unit * 1.3, y: unit * 0.7,
                             width: unit * 9, height: unit * 9)
-
-        self.squareSize = unit * 0.85
     }
 
     func masuRect(_ x: Int, _ y: Int) -> CGRect {
