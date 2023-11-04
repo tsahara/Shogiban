@@ -15,6 +15,10 @@ struct ContentView: View {
     @State private var sfen: String = ""
     @State private var reversed: Bool = false
 
+    @State private var saveSizeInPixel = false
+    @State private var boardWidthString: String = ""
+    @State private var boardHeightString: String = ""
+
     @Environment(\.displayScale) var displayScale
     @Environment(\.shogiban) var shogiban
 
@@ -28,22 +32,27 @@ struct ContentView: View {
                               onCompletion: { result in
                 })
                 .rotationEffect(.degrees(reversed ? 180 : 0))
+
             VStack {
-                Image(systemName: "globe")
-                    .imageScale(.large)
-                    .foregroundStyle(.tint)
+                Spacer()
                 Button("save it") {
                     exportingImage = createViewImage()
                     exporterPresented = true
                 }
-                TextField("SFEN", text: $sfen)
-                    .onSubmit {
-                        _ = kyokumen.read(sfen: sfen)
-                    }
-                    .disableAutocorrection(false)
+                HStack {
+                    Spacer().frame(maxWidth: 10)
+                    TextField("SFEN", text: $sfen)
+                        .onSubmit {
+                            _ = kyokumen.read(sfen: sfen)
+                        }
+                        .disableAutocorrection(false)
+                        .focusable(false)
+                    Spacer().frame(maxWidth: 10)
+                }
                 Toggle(isOn: $reversed) {
                     Text("先後反転")
                 }
+                shogibanSizeSpecView
 
                 Spacer()
                 Button("盤面を空にする") {
@@ -53,13 +62,55 @@ struct ContentView: View {
         }
     }
 
-    @MainActor func createViewImage() -> Image? {
+    var shogibanSizeSpecView: some View {
+        HStack {
+            Spacer().frame(maxWidth: 10)
+            Toggle(isOn: $saveSizeInPixel) {
+                Text("画面サイズで保存する")
+            }
 
+            Text("幅:")
+            TextField("width", text: $boardWidthString)
+                .focusable(false)
+                .frame(width: 50, height: 14)
+                .onSubmit {
+                    let num = Int(boardWidthString)
+                    if let num {
+                        boardHeightString = String(Int(Double(num) / 12.0 * 10.4))
+                    } else {
+                        boardWidthString = ""
+                    }
+                }
+
+            Text("高さ:")
+            TextField("height", text: $boardHeightString)
+                .focusable(false)
+                .frame(width: 50, height: 14)
+                .onSubmit {
+                    let num = Int(boardHeightString)
+                    if let num {
+                        boardWidthString = String(Int(Double(num) / 10.4 * 12.0))
+                    } else {
+                        boardHeightString = ""
+                    }
+                }
+            Spacer()
+        }
+
+    }
+
+    @MainActor func createViewImage() -> Image? {
         let view = ShogibanView(kyokumen: kyokumen)
             .rotationEffect(.degrees(reversed ? 180 : 0))
         let renderer = ImageRenderer(content: view)
         renderer.scale = displayScale
-        renderer.proposedSize = ProposedViewSize(shogiban.banSize)
+        if saveSizeInPixel {
+            renderer.proposedSize = ProposedViewSize(shogiban.banSize)
+        } else {
+            let width  = Int(boardWidthString)  ?? 600
+            let height = Int(boardHeightString) ?? 520
+            renderer.proposedSize = ProposedViewSize(width: CGFloat(width), height: CGFloat(height))
+        }
 
         guard let nsImage = renderer.nsImage else { return nil }
         exportingData = ShogibanImage(nsImage: nsImage)

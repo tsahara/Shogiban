@@ -2,7 +2,7 @@
 //  Shogiban.swift
 //  Shogiban
 //
-//  Created by 佐原具幸 on 2023/10/14.
+//  Created by Tomoyuki Sahara on 2023/10/14.
 //
 
 import SwiftUI
@@ -68,7 +68,6 @@ struct ShogibanView: View {
                             anchor: .leading)
                     }
                 }
-                .background(geometryInspector)
 
                 pieceStandView(geo, .black)
                 pieceStandView(geo, .white)
@@ -83,6 +82,7 @@ struct ShogibanView: View {
             }
             .frame(width: geo.unit * 12.0, height: geo.unit * 10.4)
         }
+        .background(geometryInspector)
     }
 
     var geometryInspector: some View {
