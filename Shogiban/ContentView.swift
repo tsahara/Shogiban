@@ -19,6 +19,9 @@ struct ContentView: View {
     @State private var boardWidthString: String = ""
     @State private var boardHeightString: String = ""
 
+    @State private var boardBlackName: String = "先手"
+    @State private var boardWhiteName: String = "後手"
+
     @Environment(\.displayScale) var displayScale
     @Environment(\.shogiban) var shogiban
 
@@ -53,6 +56,7 @@ struct ContentView: View {
                     Text("先後反転")
                 }
                 shogibanSizeSpecView
+                shogibanPlayerNameView
 
                 Spacer()
                 Button("盤面を空にする") {
@@ -96,8 +100,30 @@ struct ContentView: View {
                 }
             Spacer()
         }
-
     }
+
+    var shogibanPlayerNameView: some View {
+        HStack {
+            Spacer().frame(maxWidth: 10)
+            Text("対局者名: ")
+            Text("☗")
+            TextField("先手", text: $boardBlackName)
+                .focusable(false)
+                .frame(width: 70)
+                .onSubmit {
+                    kyokumen.player(.black, name: boardBlackName)
+                }
+            Text("☖")
+            TextField("後手", text: $boardWhiteName)
+                .focusable(false)
+                .frame(width: 70)
+                .onSubmit {
+                    kyokumen.player(.white, name: boardWhiteName)
+                }
+            Spacer()
+        }
+    }
+
 
     @MainActor func createViewImage() -> Image? {
         let view = ShogibanView(kyokumen: kyokumen)

@@ -103,7 +103,7 @@ struct ShogibanView: View {
     }
 
     func makePieceStandString(_ player: Player) -> String {
-        let prefix = player == .black ? "☗先手 " : "☖後手 "
+        let prefix = (player == .black ? "☗" : "☖") + kyokumen.player(player) + " "
         var str = prefix
         [.rook, .bishop, .gold, .silver, .knight, .lance].forEach {
             (piece: Piece) in
@@ -215,6 +215,8 @@ class Kyokumen {
     var mochigomaSente: [Piece: Int]
     var mochigomaGote: [Piece: Int]
 
+    private var playerName: [String] = [ "先手", "後手" ]
+
     init() {
         masume = Array(repeating: (piece: nil, player: nil),
                        count: 81)
@@ -246,6 +248,20 @@ class Kyokumen {
         for x in 1...9 {
             set(x, 3, .paun, .white)
             set(x, 7, .paun, .black)
+        }
+    }
+
+    func player(_ player: Player) -> String {
+        switch player {
+        case .black: playerName[0]
+        case .white: playerName[1]
+        }
+    }
+
+    func player(_ player: Player, name: String) {
+        switch player {
+        case .black: playerName[0] = name
+        case .white: playerName[1] = name
         }
     }
 
