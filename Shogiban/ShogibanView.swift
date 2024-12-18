@@ -149,14 +149,14 @@ struct ShogibanView: View {
             str += String(repeating: piece.char(), count: count)
         }
 
-        let paunCount = kyokumen.has(.paun, player)
-        if paunCount == 1 {
+        let pawnCount = kyokumen.has(.pawn, player)
+        if pawnCount == 1 {
             str += "歩"
-        } else if paunCount >= 2 {
+        } else if pawnCount >= 2 {
             let fmt = NumberFormatter()
             fmt.numberStyle = .spellOut
             fmt.locale = .init(identifier: "ja-JP")
-            str += "歩" + fmt.string(from: NSNumber(value: paunCount))!
+            str += "歩" + fmt.string(from: NSNumber(value: pawnCount))!
         }
         if str == prefix { str += "なし" }
 
@@ -285,8 +285,8 @@ class Kyokumen {
         set(8, 2, .rook, .white)
         set(2, 8, .rook, .black)
         for x in 1...9 {
-            set(x, 3, .paun, .white)
-            set(x, 7, .paun, .black)
+            set(x, 3, .pawn, .white)
+            set(x, 7, .pawn, .black)
         }
     }
 
@@ -378,7 +378,7 @@ class Kyokumen {
 
     static func charToPiecePlayer(_ ch: Character) -> (Piece?, Player?) {
         switch ch {
-        case "P": (.paun,   .black)
+        case "P": (.pawn,   .black)
         case "L": (.lance,  .black)
         case "N": (.knight, .black)
         case "S": (.silver, .black)
@@ -386,7 +386,7 @@ class Kyokumen {
         case "B": (.bishop, .black)
         case "R": (.rook,   .black)
         case "K": (.king,   .black)
-        case "p": (.paun,   .white)
+        case "p": (.pawn,   .white)
         case "l": (.lance,  .white)
         case "n": (.knight, .white)
         case "s": (.silver, .white)

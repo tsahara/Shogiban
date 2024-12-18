@@ -27,12 +27,12 @@ enum Player: Int {
 }
 
 enum Piece: Int {
-    case paun, lance, knight, silver, bishop, rook, gold, king
-    case paunP, lanceP, knightP, silverP, bishopP, rookP
+    case pawn, lance, knight, silver, bishop, rook, gold, king
+    case pawnP, lanceP, knightP, silverP, bishopP, rookP
 
     func promote() -> Self {
         switch self {
-        case .paun:   .paunP
+        case .pawn:   .pawnP
         case .lance:  .lanceP
         case .knight: .knightP
         case .silver: .silverP
@@ -44,7 +44,7 @@ enum Piece: Int {
 
     func char() -> String {
         return [
-            .paun: "歩", .lance: "香", .knight: "桂", .silver: "銀", .bishop: "角", .rook: "飛", .gold: "金", .king: "玉", .paunP: "と", .lanceP: "杏", .knightP: "圭", .silverP: "全", .bishopP: "馬", .rookP: "竜"
+            .pawn: "歩", .lance: "香", .knight: "桂", .silver: "銀", .bishop: "角", .rook: "飛", .gold: "金", .king: "玉", .pawnP: "と", .lanceP: "杏", .knightP: "圭", .silverP: "全", .bishopP: "馬", .rookP: "竜"
         ][self]!
     }
 }

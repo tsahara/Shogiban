@@ -58,23 +58,23 @@ final class KyokumenTests: XCTestCase {
         let shokei = "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL"
         XCTAssertTrue(k.read(sfen: shokei))
         assertSquare(1, 1, .lance, .white)
-        assertSquare(5, 3, .paun,  .white)
-        assertSquare(5, 7, .paun,  .black)
+        assertSquare(5, 3, .pawn,  .white)
+        assertSquare(5, 7, .pawn,  .black)
         assertSquare(9, 9, .lance, .black)
 
         let k2 = "l6nl/5+P3/2np3k1/p1p2S2p/3P2Sp1/1pPb2P1P/PP2+r1NS1/R5GK1/LN6L b Gb2gs5p 1"
         XCTAssertTrue(k.read(sfen: k2))
         assertSquare(2, 8, .king, .black)
-        assertSquare(4, 2, .paunP, .black)
+        assertSquare(4, 2, .pawnP, .black)
         assertSquare(6, 6, .bishop, .white)
         assertSquare(5, 7, .rookP, .white)
         assertSquare(7, 9, nil, nil)
 
         XCTAssertEqual(k.has(.gold, .black), 1)
-        XCTAssertEqual(k.has(.paun, .black), 0)
+        XCTAssertEqual(k.has(.pawn, .black), 0)
         XCTAssertEqual(k.has(.bishop, .white), 1)
         XCTAssertEqual(k.has(.gold, .white), 2)
         XCTAssertEqual(k.has(.silver, .white), 1)
-        XCTAssertEqual(k.has(.paun, .white), 5)
+        XCTAssertEqual(k.has(.pawn, .white), 5)
     }
 }
