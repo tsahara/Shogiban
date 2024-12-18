@@ -21,6 +21,8 @@ struct ShogibanView: View {
 
                     let frame_color = GraphicsContext.Shading.color(.black)
 
+                    drawLastMoveSquare(context, geo)
+
                     // Outer Frame
                     context.stroke(Path(geo.fuchi), with: frame_color, lineWidth: 2)
 
@@ -68,14 +70,23 @@ struct ShogibanView: View {
                             anchor: .leading)
                     }
                 }
+                .onTapGesture { location in onTapBoard(geo, location) }
 
                 pieceStandView(geo, .black)
                 pieceStandView(geo, .white)
 
                 ForEach(kyokumen.piecesOnBoard()) { square in
                     let deg = (square.player == .black ? 0.0 : 180.0)
+                    let weight: Font.Weight = (kyokumen.lastMove == (square.x, square.y)) ? .bold : .regular
+                    let font = Font.system(size: geo.unit * 0.85,
+                                           weight: weight)
                     Text(square.piece!.char())
-                        .font(.system(size: geo.unit * 0.85))
+                        .font(font)
+                        .frame(width: geo.masuWidth - 1,
+                               height: geo.masuHeight - 1)
+                        .onTapGesture {
+                            self.onTapSquare(square.x, square.y)
+                        }
                         .rotationEffect(.degrees(deg))
                         .position(geo.masuRect(square.x, square.y).center)
                 }
@@ -91,6 +102,33 @@ struct ShogibanView: View {
                 shogiban.banSize = geometry.size
             }
             return AnyView(Color.white)
+        }
+    }
+
+    func drawLastMoveSquare(_ context: GraphicsContext, _ geo: ShogibanGeometry) {
+        guard kyokumen.lastMove != (0, 0) else { return }
+        let path = Path(geo.masuRect(kyokumen.lastMove.x,
+                                     kyokumen.lastMove.y))
+        context.fill(path, with: .color(.yellow))
+    }
+
+    func onTapBoard(_ geo: ShogibanGeometry, _ location: CGPoint) {
+        if geo.fuchi.contains(location) {
+            let x = location.x - geo.fuchi.minX
+            let y = location.y - geo.fuchi.minY
+            let column = 9 - Int(x / geo.masuWidth)
+            let row    = 1 + Int(y / geo.masuHeight)
+            self.onTapSquare(column, row)
+        } else {
+            self.onTapSquare(0, 0)
+        }
+    }
+
+    func onTapSquare(_ column: Int, _ row: Int) {
+        if kyokumen.lastMove == (column, row) {
+            kyokumen.lastMove = (0, 0)
+        } else {
+            kyokumen.lastMove = (column, row)
         }
     }
 
@@ -214,6 +252,7 @@ class Kyokumen {
     var masume: [(piece: Piece?, player: Player?)]
     var mochigomaSente: [Piece: Int]
     var mochigomaGote: [Piece: Int]
+    var lastMove: (x: Int, y: Int) = (0, 0)
 
     private var playerName: [String] = [ "先手", "後手" ]
 
